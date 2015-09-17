@@ -1,0 +1,107 @@
+\documentclass{article}
+\usepackage[top=1in, bottom=1in, left=1.25in, right=1.25in]{geometry}
+\usepackage{amsmath}
+\usepackage{algorithm2e}
+\title{\textbf {Final Project}}
+\author{Yangye Zhu}
+\date{}
+\begin{document}
+\maketitle
+\begin{flushleft}
+\section{Introduction}
+
+The \emph{Pearson correlation coefficient} for users a and b~\cite{CME211:2013:FinalProjectPart1} is
+
+\begin{equation}
+P_{a,b} = \frac{\sum\limits_{i=1}^{m}(r_{a,i}-\bar{r_a})(r_{b,i}-\bar{r_b})}{\sqrt{\sum\limits_{i=1}^{m}(r_{a,i}-\bar{r_a})^2\sum\limits_{i=1}^{m}(r_{b,i}-\bar{r_b})^2}} 
+\label{eq:pcc}
+\end{equation}
+
+A test dataset is created as below (Table~\ref{table:dataset}) to illustrate the computation of this coefficient. The threshold for number of common movies is set to be 6.
+
+\begin{table}[h]
+\begin{center}
+\caption{Test Data}
+\begin{tabular}{|c|l|lll}
+\cline{1-2}
+\textbf{userID} & \multicolumn{1}{|c|}{\textbf{(movieID, rating)}} &  &  &  \\ \cline{1-2}
+1               & (1,1) (2,4) (3,3) (7,1) (8,3) (9,4) (10,5)       &  &  &  \\ \cline{1-2}
+2               & (1,5) (2,5) (3,2) (4,3) (5,4) (6,2)              &  &  &  \\ \cline{1-2}
+3               & (1,2) (2,4) (3,5) (4,5) (5,2) (6,3)              &  &  &  \\ \cline{1-2}
+\end{tabular}
+\label{table:dataset}
+\end{center}
+\end{table}
+\vspace{5 mm}
+For userID 1, the number of common movies with the other two users is 3, less than 6, so it has no correlated user. For userID 2,  the maximum coefficient in absolute value must be $P_{2, 3}$, and we can use Equation~\ref{eq:pcc} to calculate it.
+
+\begin{tiny}
+\begin{equation}
+\begin{split}
+P_{2,3} &= \frac{(5-3.5)(2-3.5)+(5-3.5)(4-3.5)+(2-3.5)(5-3.5)+(3-3.5)(5-3.5)+(4-3.5)(2-3.5)+(2-3.5)(3-3.5)}{\sqrt{((5-3.5)^2+(5-3.5)^2+(2-3.5)^2+(3-3.5)^2+(4-3.5)^2+(2-3.5)^2)^2}} \\
+            &= \frac{-4.5}{9.5} \\
+            &= -0.47
+\end{split}
+\end{equation}
+\end{tiny}
+
+So the output file for this test dataset should look like:
+
+\begin{center}
+1
+
+2 (3, -0.47, 6)
+
+3 (2, -0.47, 6)
+\end{center}
+\vspace{5 mm}
+To provide recommendations about movies that user a has not rated but is likely to enjoy, we calculate a \emph{predicted rating} for movie i by user a according to the following expression~\cite{CME211:2013:FinalProjectPart2}.
+
+\begin{equation}
+p_{a,i} = \bar{r_a} + \frac{\sum\limits_{b=1}^{n}(r_{b,i}-\bar{r_b})P_{a,b}}{\sum\limits_{b=1}^{n}\mid P_{a,b}\mid} 
+\label{eq:rec}
+\end{equation}
+
+\section{Pseudocode}
+
+The algorithm for reading input file and computing the correlation coefficients is shown in Algorithm~\ref{alto:computePCC}. Inside this algorithm, a function is called to return the Pearson correlation coefficient for two users, according to Equation~\ref{eq:pcc}. Similar algorithm can be applied to obtain the recommended movies according to Equation~\ref{eq:rec}. 
+
+\begin{algorithm}
+ \SetAlgoLined
+ \KwData{A data file of movie ratings}
+ \KwResult{For each user the ncorrmax users who are most closely correlated}
+ Initialization: a User class with data of a ratings map and a method of computing the PCC correlation between a given user and itself\;
+ Read the movie ratings data to populate the data of ratings map for each user\;
+ \For{each user} {
+      \For{every other user} {
+             Call the method of User class to compute and store the data of correlations vector for each user
+      }
+ }
+ \caption{Computation of the correlation coefficient}
+ \label{alto:computePCC}
+\end{algorithm}
+\vspace{5 mm}
+\section{Comparison of Runtime}
+
+Table~\ref{table:cmpTime} compares the runtime of computing correlations using three kinds of programming language/style. Evidently, C++ is faster than Python, but in this case, C++ without OOP design is not significantly better in terms of performance. What really beats Python is C++ with OOP design. In addition, the algorithm is cleaner than that without OOP design. As seen in the algorithm section above, all we need to do is call the method of User class, making the code easy to read and understand. Another trivial observation is that if not using the -O3 option to compile the C++ code, it is actually much slower than Python. This might indicate that compiling optimization is crucial in achieving very good performance of C++ programming.
+%
+\begin{table}
+\begin{center}
+\caption{Correlations Computation Runtime}
+\begin{tabular}{|l|c|lll}
+\cline{1-2}
+\textbf{Programming language/style} & \multicolumn{1}{|l|}{\textbf{Time cost (s)}} &  &  &  \\ \cline{1-2}
+Python                              & 33.3                                         &  &  &  \\ \cline{1-2}
+C++ (not OOP)                       & 14.9                                         &  &  &  \\ \cline{1-2}
+C++ (OOP)                           & 6.3                                          &  &  &  \\ \cline{1-2}
+\end{tabular}
+\label{table:cmpTime}
+\end{center}
+\end{table} 
+
+% Reference section
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\end{flushleft}
+\end{document}
